@@ -18,3 +18,4 @@ class MarvelService {
 }
 
 export default MarvelService;
+// test git перетащил проект
