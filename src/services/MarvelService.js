@@ -11,11 +11,14 @@ class MarvelService {
 
 		return await res.json();
 	};
-
+	// получаем всех персонажей
 	getAllCharacters = () => {
 		return this.getResource(`${this._apiBase}characters?${this._apiKey}`);
+	};
+	// получаем персонажа по id
+	getCharacter = (id) => {
+		return this.getResource(`${this._apiBase}characters/${id}?${this._apiKey}`);
 	};
 }
 
 export default MarvelService;
-// test git перетащил проект
