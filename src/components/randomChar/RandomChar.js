@@ -1,5 +1,7 @@
 import { Component } from 'react';
 import './randomChar.scss';
+import Spinner from '../spinner/Spinner';
+import ErrorMessage from '../errorMessage/ErrorMessage';
 import mjolnir from '../../resources/img/mjolnir.png';
 import MarvelService from '../../services/MarvelService';
 
@@ -10,6 +12,8 @@ class RandomChar extends Component {
 		thumbnail: null,
 		homepage: null,
 		wiki: null,
+		loading: true,
+		error: false,
 	};
 
 	marvelService = new MarvelService();
@@ -19,6 +23,7 @@ class RandomChar extends Component {
 	}
 
 	updateChar = () => {
+		this.setState({ loading: true, error: false }); // Сбрасываем loading и error перед запросом
 		const id = Math.floor(Math.random() * (20 - 1) + 1);
 		this.marvelService
 			.getCharacter(id)
@@ -26,43 +31,45 @@ class RandomChar extends Component {
 				const character = res.data.results[0];
 				if (!character) {
 					console.error('No character data found');
+					this.setState({ loading: false, error: true }); // Устанавливаем error: true, если данные не получены
 					return;
 				}
-				// Начало изменений: обработка описания
-				const maxDescriptionLength = 92; // Максимальная длина описания 92 символа
-				const trimmedDescription = res.data.results[0].description
-					? res.data.results[0].description.length > maxDescriptionLength
-						? res.data.results[0].description.slice(0, maxDescriptionLength) +
-						  '...' // Обрезаем до 92 символов и добавляем многоточие
-						: res.data.results[0].description
-					: 'База данных пуста'; // Если описание отсутствует, возвращаем сообщение
+
+				const maxDescriptionLength = 92;
+				const trimmedDescription = character.description
+					? character.description.length > maxDescriptionLength
+						? character.description.slice(0, maxDescriptionLength) + '...'
+						: character.description
+					: 'База данных пуста';
 
 				this.setState({
-					name: res.data.results[0].name,
-					description: trimmedDescription, // Используем обработанное описание
-					thumbnail:
-						res.data.results[0].thumbnail.path +
-						'.' +
-						res.data.results[0].thumbnail.extension,
-					homepage: res.data.results[0].urls[0].url,
-					wiki: res.data.results[0].urls[1].url,
+					name: character.name,
+					description: trimmedDescription,
+					thumbnail: `${character.thumbnail.path}.${character.thumbnail.extension}`,
+					homepage: character.urls[0].url,
+					wiki: character.urls[1].url,
+					loading: false,
+					error: false, // Успешная загрузка, сбрасываем error
 				});
 			})
+			// Изменение: Устанавливаем error: true при сетевой ошибке
 			.catch((error) => {
 				console.error('Error fetching character:', error);
+				this.setState({ loading: false, error: true }); // Устанавливаем error: true при сбое запроса
 			});
 	};
 
 	render() {
-		const { name, description, thumbnail, homepage, wiki } = this.state;
+		const { name, description, thumbnail, homepage, wiki, loading, error } =
+			this.state;
 
-		if (!name || !thumbnail) {
-			return <div>Loading...</div>;
-		}
-
-		return (
-			<div className="randomchar">
-				<div className="randomchar__block">
+		// Определяем переменные для условного рендеринга
+		const errorMessage = error ? <ErrorMessage /> : null;
+		const spinner = loading ? <Spinner /> : null;
+		// Изменение: Исправляем синтаксис для content, используя тернарный оператор
+		const content =
+			!(loading || error) && name && thumbnail ? (
+				<>
 					<img
 						src={thumbnail}
 						alt="Random character"
@@ -80,7 +87,16 @@ class RandomChar extends Component {
 							</a>
 						</div>
 					</div>
-				</div>
+				</>
+			) : null;
+
+		// Выбираем одно из состояний для левой части
+		const leftBlockContent = errorMessage || spinner || content;
+
+		return (
+			<div className="randomchar">
+				<div className="randomchar__block">{leftBlockContent}</div>
+				{/* Блок randomchar__static рендерится всегда, независимо от loading или error */}
 				<div className="randomchar__static">
 					<p className="randomchar__title">
 						Random character for today!
