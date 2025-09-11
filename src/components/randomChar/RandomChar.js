@@ -7,6 +7,7 @@ import MarvelService from '../../services/MarvelService';
 
 class RandomChar extends Component {
 	state = {
+		id: null,
 		name: null,
 		description: null,
 		thumbnail: null,
@@ -19,12 +20,35 @@ class RandomChar extends Component {
 	marvelService = new MarvelService();
 
 	componentDidMount() {
-		this.updateChar();
+		this.updateChar(); // вызываем при монтировании
+		// this.timerId = setInterval(this.updateChar, 4000); // можно автообновление каждые 5 сек
 	}
+
+	componentWillUnmount() {
+		// clearInterval(this.timerId); // 💡 правильнее очищать конкретный id, а не 'unmount'
+	}
+
+	// обработка успешной загрузки персонажа
+	onCharLoaded = (char) => {
+		this.setState({
+			...char, // загружаем данные персонажа в state
+			loading: false,
+			error: false,
+		});
+	};
+
+	// обработка ошибки
+	onError = () => {
+		this.setState({
+			loading: false,
+			error: true,
+		});
+	};
 
 	updateChar = () => {
 		this.setState({ loading: true, error: false }); // Сбрасываем loading и error перед запросом
-		const id = Math.floor(Math.random() * (20 - 1) + 1);
+		const id = Math.floor(Math.random() * (20 - 1) + 1); // 💡 получаем случайного персонажа с id 1–20
+
 		this.marvelService
 			.getCharacter(id)
 			.then((res) => {
@@ -35,6 +59,7 @@ class RandomChar extends Component {
 					return;
 				}
 
+				// 💡 обрезаем описание, если оно слишком длинное
 				const maxDescriptionLength = 92;
 				const trimmedDescription = character.description
 					? character.description.length > maxDescriptionLength
@@ -42,6 +67,7 @@ class RandomChar extends Component {
 						: character.description
 					: 'База данных пуста';
 
+				// обновляем state
 				this.setState({
 					name: character.name,
 					description: trimmedDescription,
@@ -52,11 +78,7 @@ class RandomChar extends Component {
 					error: false, // Успешная загрузка, сбрасываем error
 				});
 			})
-			// Изменение: Устанавливаем error: true при сетевой ошибке
-			.catch((error) => {
-				console.error('Error fetching character:', error);
-				this.setState({ loading: false, error: true }); // Устанавливаем error: true при сбое запроса
-			});
+			.catch(this.onError); // 💡 используем вынесенный обработчик ошибок
 	};
 
 	render() {
@@ -104,7 +126,8 @@ class RandomChar extends Component {
 						Do you want to get to know him better?
 					</p>
 					<p className="randomchar__title">Or choose another one</p>
-					<button className="button button__main">
+					{/* 💡 теперь кнопка вызывает updateChar */}
+					<button onClick={this.updateChar} className="button button__main">
 						<div className="inner">try it</div>
 					</button>
 					<img src={mjolnir} alt="mjolnir" className="randomchar__decoration" />
