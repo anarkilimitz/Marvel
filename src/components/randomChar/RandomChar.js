@@ -88,6 +88,15 @@ class RandomChar extends Component {
 		// Определяем переменные для условного рендеринга
 		const errorMessage = error ? <ErrorMessage /> : null;
 		const spinner = loading ? <Spinner /> : null;
+		// 💡 стиль картинки по умолчанию
+		let imgStyle = { objectFit: 'cover' };
+		if (
+			thumbnail ===
+			'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg'
+		) {
+			imgStyle = { objectFit: 'contain' };
+		}
+
 		// Изменение: Исправляем синтаксис для content, используя тернарный оператор
 		const content =
 			!(loading || error) && name && thumbnail ? (
@@ -96,6 +105,7 @@ class RandomChar extends Component {
 						src={thumbnail}
 						alt="Random character"
 						className="randomchar__img"
+						style={imgStyle}
 					/>
 					<div className="randomchar__info">
 						<p className="randomchar__name">{name}</p>
