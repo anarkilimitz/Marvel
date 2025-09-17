@@ -3,6 +3,7 @@ import './randomChar.scss';
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
 import mjolnir from '../../resources/img/mjolnir.png';
+import ErrorWindow from '../../resources/img/error-Window.jpg';
 import MarvelService from '../../services/MarvelService';
 
 class RandomChar extends Component {
@@ -15,39 +16,22 @@ class RandomChar extends Component {
 		wiki: null,
 		loading: true,
 		error: false,
+		imageError: false, // Новый флаг для ошибки загрузки изображения
 	};
 
 	marvelService = new MarvelService();
 
 	componentDidMount() {
-		this.updateChar(); // вызываем при монтировании
-		// this.timerId = setInterval(this.updateChar, 4000); // можно автообновление каждые 5 сек
+		this.updateChar();
 	}
 
 	componentWillUnmount() {
-		// clearInterval(this.timerId); // 💡 правильнее очищать конкретный id, а не 'unmount'
+		// clearInterval(this.timerId); // Раскомментируйте, если используете setInterval
 	}
 
-	// обработка успешной загрузки персонажа
-	onCharLoaded = (char) => {
-		this.setState({
-			...char, // загружаем данные персонажа в state
-			loading: false,
-			error: false,
-		});
-	};
-
-	// обработка ошибки
-	onError = () => {
-		this.setState({
-			loading: false,
-			error: true,
-		});
-	};
-
 	updateChar = () => {
-		this.setState({ loading: true, error: false }); // Сбрасываем loading и error перед запросом
-		const id = Math.floor(Math.random() * (20 - 1) + 1); // 💡 получаем случайного персонажа с id 1–20
+		this.setState({ loading: true, error: false, imageError: false }); // Сбрасываем все флаги
+		const id = Math.floor(Math.random() * (20 - 1) + 1); // Случайный ID от 1 до 20
 
 		this.marvelService
 			.getCharacter(id)
@@ -55,11 +39,10 @@ class RandomChar extends Component {
 				const character = res.data.results[0];
 				if (!character) {
 					console.error('No character data found');
-					this.setState({ loading: false, error: true }); // Устанавливаем error: true, если данные не получены
+					this.setState({ loading: false, error: true });
 					return;
 				}
 
-				// 💡 обрезаем описание, если оно слишком длинное
 				const maxDescriptionLength = 92;
 				const trimmedDescription = character.description
 					? character.description.length > maxDescriptionLength
@@ -67,45 +50,67 @@ class RandomChar extends Component {
 						: character.description
 					: 'База данных пуста';
 
-				// обновляем state
 				this.setState({
 					name: character.name,
 					description: trimmedDescription,
 					thumbnail: `${character.thumbnail.path}.${character.thumbnail.extension}`,
-					homepage: character.urls[0].url,
-					wiki: character.urls[1].url,
+					homepage: character.urls[0]?.url || '#',
+					wiki: character.urls[1]?.url || '#',
 					loading: false,
-					error: false, // Успешная загрузка, сбрасываем error
+					error: false,
+					imageError: false,
 				});
 			})
-			.catch(this.onError); // 💡 используем вынесенный обработчик ошибок
+			.catch(() => {
+				console.error('Error fetching character');
+				this.setState({ loading: false, error: true, imageError: false });
+			});
+	};
+
+	// Обработчик ошибки загрузки изображения
+	onImageError = () => {
+		this.setState({ imageError: true });
 	};
 
 	render() {
-		const { name, description, thumbnail, homepage, wiki, loading, error } =
-			this.state;
+		const {
+			name,
+			description,
+			thumbnail,
+			homepage,
+			wiki,
+			loading,
+			error,
+			imageError,
+		} = this.state;
 
-		// Определяем переменные для условного рендеринга
 		const errorMessage = error ? <ErrorMessage /> : null;
 		const spinner = loading ? <Spinner /> : null;
-		// 💡 стиль картинки по умолчанию
-		let imgStyle = { objectFit: 'cover' };
-		if (
+
+		// Определяем источник изображения
+		const imgSrc =
+			!thumbnail ||
 			thumbnail ===
-			'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg'
-		) {
+				'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg' ||
+			imageError
+				? ErrorWindow
+				: thumbnail;
+
+		// Устанавливаем стиль для изображения
+		let imgStyle = { objectFit: 'cover' };
+		if (imgSrc === ErrorWindow) {
 			imgStyle = { objectFit: 'contain' };
 		}
 
-		// Изменение: Исправляем синтаксис для content, используя тернарный оператор
 		const content =
 			!(loading || error) && name && thumbnail ? (
 				<>
 					<img
-						src={thumbnail}
+						src={imgSrc}
 						alt="Random character"
 						className="randomchar__img"
 						style={imgStyle}
+						onError={this.onImageError} // Добавляем обработчик ошибки
 					/>
 					<div className="randomchar__info">
 						<p className="randomchar__name">{name}</p>
@@ -122,13 +127,11 @@ class RandomChar extends Component {
 				</>
 			) : null;
 
-		// Выбираем одно из состояний для левой части
 		const leftBlockContent = errorMessage || spinner || content;
 
 		return (
 			<div className="randomchar">
 				<div className="randomchar__block">{leftBlockContent}</div>
-				{/* Блок randomchar__static рендерится всегда, независимо от loading или error */}
 				<div className="randomchar__static">
 					<p className="randomchar__title">
 						Random character for today!
@@ -136,7 +139,6 @@ class RandomChar extends Component {
 						Do you want to get to know him better?
 					</p>
 					<p className="randomchar__title">Or choose another one</p>
-					{/* 💡 теперь кнопка вызывает updateChar */}
 					<button onClick={this.updateChar} className="button button__main">
 						<div className="inner">try it</div>
 					</button>

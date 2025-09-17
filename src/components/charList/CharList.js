@@ -2,6 +2,7 @@ import './charList.scss';
 import { Component } from 'react';
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
+import ErrorWindow from '../../resources/img/error-Window.jpg';
 import MarvelService from '../../services/MarvelService';
 
 class CharList extends Component {
@@ -9,38 +10,34 @@ class CharList extends Component {
 		characters: [],
 		loading: true,
 		error: false,
+		imageErrors: {}, // Объект для отслеживания ошибок загрузки изображений
 	};
 
 	marvelService = new MarvelService();
 
 	componentDidMount() {
-		this.updateChars(); // Загружаем персонажей при монтировании
+		this.updateChars();
 	}
 
-	// Обработка успешной загрузки персонажей
 	onCharsLoaded = (chars) => {
-		const maxChars = 9; // Ограничиваем до 9 персонажей
-		const placeholderImage =
-			'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg'; // Заглушка
-		const newCharacters = chars.data.results
-			.slice(0, maxChars) // Берем только первые 9 персонажей
-			.map((char) => ({
-				id: char.id,
-				name: char.name,
-				thumbnail:
-					char.thumbnail && char.thumbnail.path && char.thumbnail.extension
-						? `${char.thumbnail.path}.${char.thumbnail.extension}`
-						: placeholderImage, // Используем заглушку, если изображение недоступно
-			}));
+		const maxChars = 9;
+		const newCharacters = chars.data.results.slice(0, maxChars).map((char) => ({
+			id: char.id,
+			name: char.name,
+			thumbnail:
+				char.thumbnail && char.thumbnail.path && char.thumbnail.extension
+					? `${char.thumbnail.path}.${char.thumbnail.extension}`
+					: ErrorWindow, // Используем ErrorWindow вместо placeholderImage
+		}));
 
 		this.setState({
 			characters: newCharacters,
 			loading: false,
 			error: false,
+			imageErrors: {}, // Сбрасываем ошибки изображений
 		});
 	};
 
-	// Обработка ошибки
 	onError = () => {
 		this.setState({
 			loading: false,
@@ -48,9 +45,15 @@ class CharList extends Component {
 		});
 	};
 
-	// Метод загрузки персонажей
+	// Обработчик ошибки загрузки изображения
+	onImageError = (id) => {
+		this.setState((prevState) => ({
+			imageErrors: { ...prevState.imageErrors, [id]: true },
+		}));
+	};
+
 	updateChars = () => {
-		this.setState({ loading: true, error: false }); // Сбрасываем состояние перед запросом
+		this.setState({ loading: true, error: false, imageErrors: {} });
 
 		this.marvelService
 			.getAllCharacters()
@@ -65,45 +68,55 @@ class CharList extends Component {
 			.catch(this.onError);
 	};
 
-	// Обработка клика по персонажу
 	onCharSelected = (id) => {
-		this.props.onCharSelected(id); // Передаем id в родительский компонент
+		this.props.onCharSelected(id);
 	};
 
 	render() {
-		const { characters, loading, error } = this.state;
+		const { characters, loading, error, imageErrors } = this.state;
 		const placeholderImage =
 			'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg';
 
-		// Условный рендеринг
 		const errorMessage = error ? <ErrorMessage /> : null;
 		const spinner = loading ? <Spinner /> : null;
 		const content =
 			!(loading || error) && characters.length > 0 ? (
 				<ul className="char__grid">
-					{characters.map((char) => (
-						<li
-							key={char.id}
-							className={`char__item ${
-								this.props.selectedCharId === char.id
-									? 'char__item_selected'
-									: ''
-							}`}
-							onClick={() => this.onCharSelected(char.id)}
-						>
-							<img
-								src={char.thumbnail}
-								alt={char.name}
-								style={
-									char.thumbnail === placeholderImage ||
-									char.thumbnail.includes('image_not_available')
-										? { objectFit: 'contain' }
-										: { objectFit: 'cover' }
-								}
-							/>
-							<div className="char__name">{char.name}</div>
-						</li>
-					))}
+					{characters.map((char) => {
+						// Определяем источник изображения
+						const imgSrc =
+							char.thumbnail === placeholderImage ||
+							char.thumbnail.includes('image_not_available') ||
+							imageErrors[char.id]
+								? ErrorWindow
+								: char.thumbnail;
+
+						// Устанавливаем стиль
+						const imgStyle =
+							imgSrc === ErrorWindow
+								? { objectFit: 'contain' }
+								: { objectFit: 'cover' };
+
+						return (
+							<li
+								key={char.id}
+								className={`char__item ${
+									this.props.selectedCharId === char.id
+										? 'char__item_selected'
+										: ''
+								}`}
+								onClick={() => this.onCharSelected(char.id)}
+							>
+								<img
+									src={imgSrc}
+									alt={char.name}
+									style={imgStyle}
+									onError={() => this.onImageError(char.id)} // Обработчик ошибки
+								/>
+								<div className="char__name">{char.name}</div>
+							</li>
+						);
+					})}
 				</ul>
 			) : null;
 

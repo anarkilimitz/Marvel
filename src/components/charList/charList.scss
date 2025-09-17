@@ -12,8 +12,8 @@
     &__list {
         display: flex;
         flex-direction: column;
-        align-items: center; // Центрирование по горизонтали
-        min-height: 100px; // Минимальная высота, чтобы спиннер не "прилипал" к верху
+        align-items: center;
+        min-height: 100px;
     }
 
     &__grid {
