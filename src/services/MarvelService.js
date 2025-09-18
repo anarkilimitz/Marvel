@@ -1,6 +1,7 @@
 class MarvelService {
 	_apiBase = 'https://marvel-server-zeta.vercel.app/';
 	_apiKey = 'apikey=d4eecb0c66dedbfae4eab45d312fc1df';
+	_baseOffset = 9;
 
 	getResource = async (url) => {
 		let res = await fetch(url);
@@ -13,8 +14,10 @@ class MarvelService {
 	};
 
 	// получаем всех персонажей
-	getAllCharacters = () => {
-		return this.getResource(`${this._apiBase}characters?${this._apiKey}`);
+	getAllCharacters = (offset = this._baseOffset) => {
+		return this.getResource(
+			`${this._apiBase}characters?offset=${offset}&limit=9&${this._apiKey}`
+		);
 	};
 	// получаем персонажа по id
 	getCharacter = (id) => {

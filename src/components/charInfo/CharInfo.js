@@ -8,13 +8,7 @@ import MarvelService from '../../services/MarvelService';
 
 class CharInfo extends Component {
 	state = {
-		id: null,
 		char: null,
-		name: null,
-		description: null,
-		homepage: null,
-		wiki: null,
-		comics: null,
 		loading: false,
 		error: false,
 	};
@@ -37,15 +31,30 @@ class CharInfo extends Component {
 			return;
 		}
 
+		this.setState({ loading: true });
 		this.marvelService
-			.getCharacter(charId) // когда придет ответ от сервиса с id персонажа
-			.then(this.onCharLoaded) // он попадет в onCharloaded
+			.getCharacter(charId)
+			.then(this.onCharLoaded)
 			.catch(this.onError);
 	};
 
-	onCharLoaded = (char) => {
+	onCharLoaded = (response) => {
+		const charData = response.data.results[0];
+		const thumbnail =
+			charData.thumbnail?.path && charData.thumbnail?.extension
+				? `${charData.thumbnail.path}.${charData.thumbnail.extension}`
+				: null;
+
 		this.setState({
-			char, // и запишется сюда в state
+			char: {
+				id: charData.id,
+				name: charData.name,
+				description: charData.description || 'Описание отсутствует',
+				thumbnail,
+				homepage: charData.urls[0]?.url || '#',
+				wiki: charData.urls[1]?.url || '#',
+				comics: charData.comics.items || [],
+			},
 			loading: false,
 			error: false,
 		});
@@ -65,7 +74,7 @@ class CharInfo extends Component {
 		const errorMessage = error ? <ErrorMessage /> : null;
 		const spinner = loading ? <Spinner /> : null;
 		const content = !(loading || error || !char) ? <View char={char} /> : null;
-		// Если выполнится хоть одно условие выше, то оно и загрузится ниже
+
 		return (
 			<div className="char__info">
 				{skeleton}
@@ -78,20 +87,38 @@ class CharInfo extends Component {
 }
 
 const View = ({ char }) => {
-	const { name, description, homepage, wiki, comics } = char;
+	const { name, description, homepage, wiki, comics, thumbnail } = char;
+	const fallbackImage =
+		'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg';
 
 	// Определяем источник изображения
-	const imgSrc = ErrorWindow;
+	const imgSrc =
+		thumbnail && !thumbnail.includes('image_not_available')
+			? thumbnail
+			: fallbackImage;
+
 	// Устанавливаем стиль для изображения
-	let imgStyle = { objectFit: 'cover' };
-	if (imgSrc === ErrorWindow) {
-		imgStyle = { objectFit: 'contain' };
-	}
+	const imgStyle =
+		imgSrc === fallbackImage
+			? { objectFit: 'contain' }
+			: { objectFit: 'cover' };
 
 	return (
 		<>
 			<div className="char__basics">
-				<img src={imgSrc} alt={name} style={imgStyle} />
+				<img
+					src={imgSrc}
+					alt={name}
+					style={imgStyle}
+					onError={(e) => {
+						e.target.src = fallbackImage; // Сначала пробуем fallbackImage
+						e.target.style.objectFit = 'contain';
+						e.target.onerror = () => {
+							e.target.src = ErrorWindow; // Если и fallbackImage не загрузился, используем ErrorWindow
+							e.target.style.objectFit = 'contain';
+						};
+					}}
+				/>
 				<div>
 					<div className="char__info-name">{name}</div>
 					<div className="char__btns">
@@ -110,11 +137,11 @@ const View = ({ char }) => {
 				{Array.isArray(comics) && comics.length > 0 ? (
 					comics.slice(0, 5).map((item, i) => (
 						<li key={i} className="char__comics-item">
-							{item.name}
+							{item}
 						</li>
 					))
 				) : (
-					<li className="char__comics-item">Комиксы не загрузились из БД</li>
+					<li className="char__comics-item">Комиксы не найдены</li>
 				)}
 			</ul>
 		</>

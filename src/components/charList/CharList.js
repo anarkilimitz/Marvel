@@ -2,128 +2,120 @@ import './charList.scss';
 import { Component } from 'react';
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
-import ErrorWindow from '../../resources/img/error-Window.jpg';
 import MarvelService from '../../services/MarvelService';
 
 class CharList extends Component {
 	state = {
-		characters: [],
+		charList: [],
 		loading: true,
 		error: false,
-		imageErrors: {}, // Объект для отслеживания ошибок загрузки изображений
+		newItemLoading: false,
+		offset: 3,
+		charEnded: false,
 	};
 
 	marvelService = new MarvelService();
 
 	componentDidMount() {
-		this.updateChars();
+		this.onRequest();
 	}
+	// метод отвечает за запрос на сервер, вызывается по клику на кнопку load more
+	onRequest = (offset) => {
+		this.onCharListLoading();
+		this.marvelService
+			.getAllCharacters(offset)
+			.then(this.onCharListLoaded)
+			.catch(this.onError);
+	};
 
-	onCharsLoaded = (chars) => {
-		const maxChars = 9;
-		const newCharacters = chars.data.results.slice(0, maxChars).map((char) => ({
+	onCharListLoading = () => {
+		this.setState({
+			newItemLoading: true,
+		});
+	};
+
+	onCharListLoaded = (newCharList) => {
+		const formattedCharList = newCharList.data.results.map((char) => ({
 			id: char.id,
 			name: char.name,
-			thumbnail:
-				char.thumbnail && char.thumbnail.path && char.thumbnail.extension
-					? `${char.thumbnail.path}.${char.thumbnail.extension}`
-					: ErrorWindow, // Используем ErrorWindow вместо placeholderImage
+			thumbnail: `${char.thumbnail.path}.${char.thumbnail.extension}`,
 		}));
 
-		this.setState({
-			characters: newCharacters,
+		let ended = false;
+		if (formattedCharList.length < 3) {
+			ended = true;
+		}
+
+		this.setState(({ offset, charList }) => ({
+			charList: [...charList, ...formattedCharList],
 			loading: false,
-			error: false,
-			imageErrors: {}, // Сбрасываем ошибки изображений
-		});
+			newItemLoading: false,
+			offset: offset + 1,
+			charEnded: ended,
+		}));
 	};
 
 	onError = () => {
 		this.setState({
-			loading: false,
 			error: true,
+			loading: false,
 		});
 	};
 
-	// Обработчик ошибки загрузки изображения
-	onImageError = (id) => {
-		this.setState((prevState) => ({
-			imageErrors: { ...prevState.imageErrors, [id]: true },
-		}));
-	};
-
-	updateChars = () => {
-		this.setState({ loading: true, error: false, imageErrors: {} });
-
-		this.marvelService
-			.getAllCharacters()
-			.then((res) => {
-				if (!res.data.results || res.data.results.length === 0) {
-					console.error('No character data found');
-					this.setState({ loading: false, error: true });
-					return;
-				}
-				this.onCharsLoaded(res);
-			})
-			.catch(this.onError);
-	};
-
-	onCharSelected = (id) => {
-		this.props.onCharSelected(id);
-	};
-
-	render() {
-		const { characters, loading, error, imageErrors } = this.state;
+	renderItems(arr) {
 		const placeholderImage =
 			'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg';
 
+		const items = arr.map((item) => {
+			let imgStyle = { objectFit: 'cover' };
+			if (item.thumbnail === placeholderImage) {
+				imgStyle = { objectFit: 'unset' };
+			}
+
+			return (
+				<li
+					className="char__item"
+					key={item.id}
+					onClick={() => this.props.onCharSelected(item.id)}
+				>
+					<img
+						src={item.thumbnail}
+						alt={item.name}
+						style={imgStyle}
+						onError={(e) => {
+							e.target.src = placeholderImage; // Подставляем заглушку при ошибке загрузки
+							e.target.style.objectFit = 'unset'; // Устанавливаем стиль для заглушки
+						}}
+					/>
+					<div className="char__name">{item.name}</div>
+				</li>
+			);
+		});
+
+		return <ul className="char__grid">{items}</ul>;
+	}
+
+	render() {
+		const { charList, loading, error, offset, newItemLoading, charEnded } =
+			this.state;
+
+		const items = this.renderItems(charList);
+
 		const errorMessage = error ? <ErrorMessage /> : null;
 		const spinner = loading ? <Spinner /> : null;
-		const content =
-			!(loading || error) && characters.length > 0 ? (
-				<ul className="char__grid">
-					{characters.map((char) => {
-						// Определяем источник изображения
-						const imgSrc =
-							char.thumbnail === placeholderImage ||
-							char.thumbnail.includes('image_not_available') ||
-							imageErrors[char.id]
-								? ErrorWindow
-								: char.thumbnail;
-
-						// Устанавливаем стиль
-						const imgStyle =
-							imgSrc === ErrorWindow
-								? { objectFit: 'contain' }
-								: { objectFit: 'cover' };
-
-						return (
-							<li
-								key={char.id}
-								className={`char__item ${
-									this.props.selectedCharId === char.id
-										? 'char__item_selected'
-										: ''
-								}`}
-								onClick={() => this.onCharSelected(char.id)}
-							>
-								<img
-									src={imgSrc}
-									alt={char.name}
-									style={imgStyle}
-									onError={() => this.onImageError(char.id)} // Обработчик ошибки
-								/>
-								<div className="char__name">{char.name}</div>
-							</li>
-						);
-					})}
-				</ul>
-			) : null;
+		const content = !(loading || error) ? items : null;
 
 		return (
 			<div className="char__list">
-				{errorMessage || spinner || content}
-				<button className="button button__main button__long">
+				{errorMessage}
+				{spinner}
+				{content}
+				<button
+					className="button button__main button__long"
+					disabled={newItemLoading}
+					style={{ display: charEnded ? 'none' : 'block' }}
+					onClick={() => this.onRequest(offset)}
+				>
 					<div className="inner">load more</div>
 				</button>
 			</div>
