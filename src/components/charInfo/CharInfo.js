@@ -1,5 +1,7 @@
-import { Component } from 'react';
 import './charInfo.scss';
+import { Component } from 'react';
+import PropTypes from 'prop-types';
+
 import ErrorWindow from '../../resources/img/error-Window.jpg';
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
@@ -146,6 +148,10 @@ const View = ({ char }) => {
 			</ul>
 		</>
 	);
+};
+// Валидация, что charId - это число, а не строка, например
+CharInfo.propTypes = {
+	charId: PropTypes.number,
 };
 
 export default CharInfo;
