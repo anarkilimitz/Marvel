@@ -69,7 +69,7 @@ class CharList extends Component {
 	setRef = (ref) => {
 		this.itemRefs.push(ref);
 	};
-
+	// метод для перебора и сравнения карточек для добавления тени
 	focusOnItem = (id) => {
 		this.itemRefs.forEach((item, index) => {
 			if (index === id) {
