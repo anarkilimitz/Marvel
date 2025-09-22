@@ -64,11 +64,28 @@ class CharList extends Component {
 		});
 	};
 
+	itemRefs = [];
+
+	setRef = (ref) => {
+		this.itemRefs.push(ref);
+	};
+
+	focusOnItem = (id) => {
+		this.itemRefs.forEach((item, index) => {
+			if (index === id) {
+				item.classList.add('char__item_selected');
+				item.focus();
+			} else {
+				item.classList.remove('char__item_selected');
+			}
+		});
+	};
+
 	renderItems(arr) {
 		const placeholderImage =
 			'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg';
 
-		const items = arr.map((item) => {
+		const items = arr.map((item, i) => {
 			let imgStyle = { objectFit: 'cover' };
 			if (item.thumbnail === placeholderImage) {
 				imgStyle = { objectFit: 'unset' };
@@ -78,7 +95,20 @@ class CharList extends Component {
 				<li
 					className="char__item"
 					key={item.id}
-					onClick={() => this.props.onCharSelected(item.id)}
+					ref={this.setRef} // Добавьте ref
+					tabIndex={0} // Для доступности клавиатуры
+					role="button" // Для доступности
+					aria-label={`Выбрать персонажа ${item.name}`} // Для скринридеров
+					onClick={() => {
+						this.props.onCharSelected(item.id);
+						this.focusOnItem(i); // Теперь i доступен
+					}}
+					onKeyDown={(e) => {
+						if (e.key === ' ' || e.key === 'Enter') {
+							this.props.onCharSelected(item.id);
+							this.focusOnItem(i);
+						}
+					}}
 				>
 					<img
 						src={item.thumbnail}

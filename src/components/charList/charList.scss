@@ -40,8 +40,8 @@
         }
 
         &_selected {
-            box-shadow: 0 5px 20px $main-color;
-            transform: translateY(-8px);
+            box-shadow: 0 5px 20px $grey;
+            animation: bounce 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
         }
     }
 
