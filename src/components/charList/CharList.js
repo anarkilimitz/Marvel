@@ -1,42 +1,39 @@
 import './charList.scss';
-import { Component } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
 import MarvelService from '../../services/MarvelService';
 
-class CharList extends Component {
-	state = {
-		charList: [],
-		loading: true,
-		error: false,
-		newItemLoading: false,
-		offset: 3,
-		charEnded: false,
-	};
+const CharList = (props) => {
+	const [charList, setCharList] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState(false);
+	const [newItemLoading, setNewItemLoading] = useState(false);
+	const [offset, setOffset] = useState(3);
+	const [charEnded, setCharEnded] = useState(false);
 
-	marvelService = new MarvelService();
+	const marvelService = new MarvelService();
 
-	componentDidMount() {
-		this.onRequest();
-	}
+	useEffect(() => {
+		onRequest();
+	}, []); // функция выполнится только 1 раз т.к массив пустой
+
 	// метод отвечает за запрос на сервер, вызывается по клику на кнопку load more
-	onRequest = (offset) => {
-		this.onCharListLoading();
-		this.marvelService
+	const onRequest = (offset) => {
+		onCharListLoading();
+		marvelService
 			.getAllCharacters(offset)
-			.then(this.onCharListLoaded)
-			.catch(this.onError);
+			.then(onCharListLoaded)
+			.catch(onError);
 	};
 
-	onCharListLoading = () => {
-		this.setState({
-			newItemLoading: true,
-		});
+	const onCharListLoading = () => {
+		setNewItemLoading(true);
 	};
 
-	onCharListLoaded = (newCharList) => {
+	const onCharListLoaded = (newCharList) => {
 		const formattedCharList = newCharList.data.results.map((char) => ({
 			id: char.id,
 			name: char.name,
@@ -48,40 +45,37 @@ class CharList extends Component {
 			ended = true;
 		}
 
-		this.setState(({ offset, charList }) => ({
-			charList: [...charList, ...formattedCharList],
-			loading: false,
-			newItemLoading: false,
-			offset: offset + 1,
-			charEnded: ended,
-		}));
+		setCharList((charList) => [...charList, ...formattedCharList]);
+		setLoading((loading) => false);
+		setNewItemLoading((newItemLoading) => false);
+		setOffset((offset) => offset + 1);
+		setCharEnded((charEnded) => ended);
 	};
 
-	onError = () => {
-		this.setState({
-			error: true,
-			loading: false,
-		});
+	const onError = () => {
+		setError((error) => true);
+		setLoading((loading) => false);
 	};
 
-	itemRefs = [];
+	const itemRefs = useRef([]);
 
-	setRef = (ref) => {
-		this.itemRefs.push(ref);
-	};
 	// метод для перебора и сравнения карточек для добавления тени
-	focusOnItem = (id) => {
-		this.itemRefs.forEach((item, index) => {
-			if (index === id) {
-				item.classList.add('char__item_selected');
-				item.focus();
-			} else {
-				item.classList.remove('char__item_selected');
-			}
-		});
+	const focusOnItem = (id) => {
+		if (id >= 0 && id < itemRefs.current.length) {
+			itemRefs.current.forEach((item, index) => {
+				if (item && item.current) {
+					if (index === id) {
+						item.current.classList.add('char__item_selected');
+						item.current.focus();
+					} else {
+						item.current.classList.remove('char__item_selected');
+					}
+				}
+			});
+		}
 	};
 
-	renderItems(arr) {
+	function renderItems(arr) {
 		const placeholderImage =
 			'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg';
 
@@ -95,18 +89,18 @@ class CharList extends Component {
 				<li
 					className="char__item"
 					key={item.id}
-					ref={this.setRef} // Добавьте ref
+					ref={(el) => (itemRefs.current[i] = el)}
 					tabIndex={0} // Для доступности клавиатуры
 					role="button" // Для доступности
 					aria-label={`Выбрать персонажа ${item.name}`} // Для скринридеров
 					onClick={() => {
-						this.props.onCharSelected(item.id);
-						this.focusOnItem(i); // Теперь i доступен
+						props.onCharSelected(item.id);
+						focusOnItem(i); // Теперь i доступен
 					}}
 					onKeyDown={(e) => {
 						if (e.key === ' ' || e.key === 'Enter') {
-							this.props.onCharSelected(item.id);
-							this.focusOnItem(i);
+							props.onCharSelected(item.id);
+							focusOnItem(i);
 						}
 					}}
 				>
@@ -127,33 +121,28 @@ class CharList extends Component {
 		return <ul className="char__grid">{items}</ul>;
 	}
 
-	render() {
-		const { charList, loading, error, offset, newItemLoading, charEnded } =
-			this.state;
+	const items = renderItems(charList);
 
-		const items = this.renderItems(charList);
+	const errorMessage = error ? <ErrorMessage /> : null;
+	const spinner = loading ? <Spinner /> : null;
+	const content = !(loading || error) ? items : null;
 
-		const errorMessage = error ? <ErrorMessage /> : null;
-		const spinner = loading ? <Spinner /> : null;
-		const content = !(loading || error) ? items : null;
-
-		return (
-			<div className="char__list">
-				{errorMessage}
-				{spinner}
-				{content}
-				<button
-					className="button button__main button__long"
-					disabled={newItemLoading}
-					style={{ display: charEnded ? 'none' : 'block' }}
-					onClick={() => this.onRequest(offset)}
-				>
-					<div className="inner">load more</div>
-				</button>
-			</div>
-		);
-	}
-}
+	return (
+		<div className="char__list">
+			{errorMessage}
+			{spinner}
+			{content}
+			<button
+				className="button button__main button__long"
+				disabled={newItemLoading}
+				style={{ display: charEnded ? 'none' : 'block' }}
+				onClick={() => onRequest(offset)}
+			>
+				<div className="inner">load more</div>
+			</button>
+		</div>
+	);
+};
 
 // Валидация, что это функция - onCharSelected
 CharList.propTypes = {
