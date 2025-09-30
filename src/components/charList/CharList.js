@@ -11,18 +11,23 @@ const CharList = (props) => {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(false);
 	const [newItemLoading, setNewItemLoading] = useState(false);
-	const [offset, setOffset] = useState(9); // Начинаем с 9, так как изначально загрузили 9 персонажей
+	const [offset, setOffset] = useState(0);
 	const [charEnded, setCharEnded] = useState(false);
 
-	const marvelService = new MarvelService();
+	const marvelServiceRef = useRef(new MarvelService());
+	const isMountedRef = useRef(false); // ✅ Добавляем флаг монтирования
 
 	useEffect(() => {
-		onRequest(0, 9); // Первоначальная загрузка 9 персонажей
-	}, []); // выполнится только один раз, тк массив пустой
+		// ✅ Предотвращаем двойной вызов в Strict Mode
+		if (!isMountedRef.current) {
+			isMountedRef.current = true;
+			onRequest(0, 3);
+		}
+	}, []);
 
 	const onRequest = (offset, limit = 3) => {
 		onCharListLoading();
-		marvelService
+		marvelServiceRef.current
 			.getAllCharacters(offset, limit)
 			.then(onCharListLoaded)
 			.catch(onError);
@@ -39,25 +44,25 @@ const CharList = (props) => {
 			thumbnail: `${char.thumbnail.path}.${char.thumbnail.extension}`,
 		}));
 
-		// Убираем дубликаты по ID
-		const uniqueCharList = formattedCharList.filter(
-			(newChar) =>
-				!charList.some((existingChar) => existingChar.id === newChar.id)
-		);
-
-		// Проверяем, достигли ли мы лимита в 20 персонажей
-		const totalCharacters = charList.length + uniqueCharList.length;
-		let ended = totalCharacters >= 20;
-
 		setCharList((prevCharList) => {
+			// ✅ Фильтруем дубликаты относительно ПРЕДЫДУЩЕГО состояния
+			const uniqueCharList = formattedCharList.filter(
+				(newChar) =>
+					!prevCharList.some((existingChar) => existingChar.id === newChar.id)
+			);
+
 			const updatedList = [...prevCharList, ...uniqueCharList];
-			// Ограничиваем список 20 персонажами
-			return updatedList.slice(0, 20);
+			const limitedList = updatedList.slice(0, 20);
+
+			// ✅ Обновляем charEnded синхронно с новым состоянием
+			setCharEnded(limitedList.length >= 20);
+
+			return limitedList;
 		});
+
 		setLoading(false);
 		setNewItemLoading(false);
 		setOffset((prevOffset) => prevOffset + 3);
-		setCharEnded(ended);
 	};
 
 	const onError = () => {
@@ -93,7 +98,7 @@ const CharList = (props) => {
 			return (
 				<li
 					className="char__item"
-					key={`${item.id}-${i}`} // Добавляем индекс к ключу для уникальности
+					key={item.id} // ✅ Используем только id, без индекса
 					ref={(el) => (itemRefs.current[i] = el)}
 					tabIndex={0}
 					role="button"

@@ -12,7 +12,7 @@ class MarvelService {
 	};
 
 	// Добавляем параметры по умолчанию
-	getAllCharacters = (offset = this._baseOffset, limit = 9) => {
+	getAllCharacters = (offset = this._baseOffset, limit = 3) => {
 		return this.getResource(
 			`${this._apiBase}characters?offset=${offset}&limit=${limit}&${this._apiKey}`
 		);
