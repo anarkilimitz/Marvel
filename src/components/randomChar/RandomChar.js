@@ -15,7 +15,7 @@ const RandomChar = () => {
 	const [wiki, setWiki] = useState(null);
 	const [imageError, setImageError] = useState(false); // Новый флаг для ошибки загрузки изображения
 
-	const { loading, error, getCharacter } = useMarvelService();
+	const { loading, error, getCharacter, clearError } = useMarvelService();
 
 	useEffect(() => {
 		updateChar();
@@ -30,11 +30,12 @@ const RandomChar = () => {
 	}, []); // Пустой массив зависимостей = только при монтировании/размонтировании
 
 	const updateChar = () => {
+		clearError(); // очистка ошибки если по ID не оказалось персонажа, но он мог переключиться
 		setImageError((imageError) => false);
 
 		const id = Math.floor(Math.random() * (20 - 1) + 1); // Случайный ID от 1 до 20
 
-			getCharacter(id)
+		getCharacter(id)
 			.then((res) => {
 				const character = res.data.results[0];
 				if (!character) {

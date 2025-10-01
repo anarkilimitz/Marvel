@@ -12,7 +12,7 @@ const CharInfo = (props) => {
 	const { charId } = props; // Деструктуризируем props
 	const [char, setChar] = useState();
 
-	const { loading, error, getCharacter } = useMarvelService();
+	const { loading, error, getCharacter, clearError } = useMarvelService();
 
 	useEffect(() => {
 		updateChar();
@@ -22,6 +22,7 @@ const CharInfo = (props) => {
 		if (!charId) {
 			return;
 		}
+		clearError();
 		getCharacter(charId).then(onCharLoaded);
 	};
 
