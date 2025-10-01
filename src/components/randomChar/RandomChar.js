@@ -4,7 +4,7 @@ import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
 import mjolnir from '../../resources/img/mjolnir.png';
 import ErrorWindow from '../../resources/img/error-Window.jpg';
-import MarvelService from '../../services/MarvelService';
+import useMarvelService from '../../services/MarvelService';
 
 const RandomChar = () => {
 	const [id, setId] = useState(null);
@@ -13,11 +13,9 @@ const RandomChar = () => {
 	const [thumbnail, setThumbnail] = useState(null);
 	const [homepage, setHomepage] = useState(null);
 	const [wiki, setWiki] = useState(null);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState(false);
 	const [imageError, setImageError] = useState(false); // Новый флаг для ошибки загрузки изображения
 
-	const marvelService = new MarvelService();
+	const { loading, error, getCharacter } = useMarvelService();
 
 	useEffect(() => {
 		updateChar();
@@ -32,20 +30,15 @@ const RandomChar = () => {
 	}, []); // Пустой массив зависимостей = только при монтировании/размонтировании
 
 	const updateChar = () => {
-		setLoading((loading) => true);
-		setError((error) => false);
 		setImageError((imageError) => false);
 
 		const id = Math.floor(Math.random() * (20 - 1) + 1); // Случайный ID от 1 до 20
 
-		marvelService
-			.getCharacter(id)
+			getCharacter(id)
 			.then((res) => {
 				const character = res.data.results[0];
 				if (!character) {
 					console.error('No character data found');
-					setLoading((loading) => false);
-					setError((error) => true);
 					return;
 				}
 
@@ -63,14 +56,9 @@ const RandomChar = () => {
 				);
 				setHomepage(character.urls[0]?.url || '#');
 				setWiki(character.urls[1]?.url || '#');
-				setLoading((loading) => false);
-				setError((error) => false);
 				setImageError((imageError) => false);
 			})
 			.catch(() => {
-				console.error('Error fetching character');
-				setLoading((loading) => false);
-				setError((error) => true);
 				setImageError((imageError) => false);
 			});
 	};

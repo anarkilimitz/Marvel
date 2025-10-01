@@ -1,26 +1,24 @@
-class MarvelService {
-	_apiBase = 'https://marvel-server-zeta.vercel.app/';
-	_apiKey = 'apikey=d4eecb0c66dedbfae4eab45d312fc1df';
-	_baseOffset = 0;
+import { useHttp } from '../hooks/http.hook';
 
-	getResource = async (url) => {
-		let res = await fetch(url);
-		if (!res.ok) {
-			throw new Error(`Could not fetch ${url}, status: ${res.status}`);
-		}
-		return await res.json();
-	};
+const useMarvelService = () => {
+	const { loading, request, error } = useHttp();
+
+	const _apiBase = 'https://marvel-server-zeta.vercel.app/';
+	const _apiKey = 'apikey=d4eecb0c66dedbfae4eab45d312fc1df';
+	const _baseOffset = 0;
 
 	// Добавляем параметры по умолчанию
-	getAllCharacters = (offset = this._baseOffset, limit = 3) => {
-		return this.getResource(
-			`${this._apiBase}characters?offset=${offset}&limit=${limit}&${this._apiKey}`
+	const getAllCharacters = (offset = _baseOffset, limit = 3) => {
+		return request(
+			`${_apiBase}characters?offset=${offset}&limit=${limit}&${_apiKey}`
 		);
 	};
 
-	getCharacter = (id) => {
-		return this.getResource(`${this._apiBase}characters/${id}?${this._apiKey}`);
+	const getCharacter = (id) => {
+		return request(`${_apiBase}characters/${id}?${_apiKey}`);
 	};
-}
 
-export default MarvelService;
+	return { loading, error, getAllCharacters, getCharacter };
+};
+
+export default useMarvelService;

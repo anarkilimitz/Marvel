@@ -6,15 +6,13 @@ import ErrorWindow from '../../resources/img/error-Window.jpg';
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
 import Skeleton from '../skeleton/Skeleton';
-import MarvelService from '../../services/MarvelService';
+import useMarvelService from '../../services/MarvelService';
 
 const CharInfo = (props) => {
 	const { charId } = props; // Деструктуризируем props
 	const [char, setChar] = useState();
-	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState(false);
 
-	const marvelService = new MarvelService();
+	const { loading, error, getCharacter } = useMarvelService();
 
 	useEffect(() => {
 		updateChar();
@@ -24,14 +22,12 @@ const CharInfo = (props) => {
 		if (!charId) {
 			return;
 		}
-		setLoading((loading) => true);
-		marvelService.getCharacter(charId).then(onCharLoaded).catch(onError);
+		getCharacter(charId).then(onCharLoaded);
 	};
 
 	const onCharLoaded = (response) => {
 		const charData = response.data.results[0];
 		if (!charData) {
-			onError();
 			return;
 		}
 		const thumbnail =
@@ -48,13 +44,6 @@ const CharInfo = (props) => {
 			wiki: charData.urls[1]?.url || '#',
 			comics: charData.comics.items || [],
 		});
-		setLoading(false);
-		setError(false);
-	};
-
-	const onError = () => {
-		setLoading((loading) => false);
-		setError((error) => true);
 	};
 
 	const skeleton = char || loading || error ? null : <Skeleton />;

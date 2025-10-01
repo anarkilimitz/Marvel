@@ -4,37 +4,27 @@ import PropTypes from 'prop-types';
 
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
-import MarvelService from '../../services/MarvelService';
+import useMarvelService from '../../services/MarvelService';
 
 const CharList = (props) => {
 	const [charList, setCharList] = useState([]);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState(false);
 	const [newItemLoading, setNewItemLoading] = useState(false);
 	const [offset, setOffset] = useState(0);
 	const [charEnded, setCharEnded] = useState(false);
-
-	const marvelServiceRef = useRef(new MarvelService());
 	const isMountedRef = useRef(false); // ✅ Добавляем флаг монтирования
+	const { loading, error, getAllCharacters } = useMarvelService();
 
 	useEffect(() => {
 		// ✅ Предотвращаем двойной вызов в Strict Mode
 		if (!isMountedRef.current) {
 			isMountedRef.current = true;
-			onRequest(0, 3);
+			onRequest(0, 3, true);
 		}
 	}, []);
 
-	const onRequest = (offset, limit = 3) => {
-		onCharListLoading();
-		marvelServiceRef.current
-			.getAllCharacters(offset, limit)
-			.then(onCharListLoaded)
-			.catch(onError);
-	};
-
-	const onCharListLoading = () => {
-		setNewItemLoading(true);
+	const onRequest = (offset, limit = 3, initial) => {
+		initial ? setNewItemLoading(false) : setNewItemLoading(true);
+		getAllCharacters(offset, limit).then(onCharListLoaded);
 	};
 
 	const onCharListLoaded = (newCharList) => {
@@ -60,14 +50,8 @@ const CharList = (props) => {
 			return limitedList;
 		});
 
-		setLoading(false);
 		setNewItemLoading(false);
 		setOffset((prevOffset) => prevOffset + 3);
-	};
-
-	const onError = () => {
-		setError(true);
-		setLoading(false);
 	};
 
 	const itemRefs = useRef([]);
@@ -134,14 +118,13 @@ const CharList = (props) => {
 	const items = renderItems(charList);
 
 	const errorMessage = error ? <ErrorMessage /> : null;
-	const spinner = loading ? <Spinner /> : null;
-	const content = !(loading || error) ? items : null;
+	const spinner = loading && !newItemLoading ? <Spinner /> : null;
 
 	return (
 		<div className="char__list">
 			{errorMessage}
 			{spinner}
-			{content}
+			{items}
 			<button
 				className="button button__main button__long"
 				disabled={newItemLoading || charEnded}
