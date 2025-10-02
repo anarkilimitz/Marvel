@@ -97,6 +97,9 @@ const CharList = (props) => {
 							focusOnItem(i);
 						}
 					}}
+					onFocus={() => {
+						focusOnItem(i);
+					}}
 				>
 					<img
 						src={item.thumbnail}
@@ -118,7 +121,12 @@ const CharList = (props) => {
 	const items = renderItems(charList);
 
 	const errorMessage = error ? <ErrorMessage /> : null;
-	const spinner = loading && !newItemLoading ? <Spinner /> : null;
+	const spinner =
+		loading && !newItemLoading ? (
+			<div style={{ display: 'flex', justifyContent: 'center' }}>
+				<Spinner />
+			</div>
+		) : null;
 
 	return (
 		<div className="char__list">

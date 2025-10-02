@@ -49,7 +49,11 @@ const CharInfo = (props) => {
 
 	const skeleton = char || loading || error ? null : <Skeleton />;
 	const errorMessage = error ? <ErrorMessage /> : null;
-	const spinner = loading ? <Spinner /> : null;
+	const spinner = loading ? (
+		<div style={{ display: 'flex', justifyContent: 'center' }}>
+			<Spinner />
+		</div>
+	) : null;
 	const content = !(loading || error || !char) ? <View char={char} /> : null;
 
 	return (

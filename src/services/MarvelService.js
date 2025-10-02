@@ -7,7 +7,6 @@ const useMarvelService = () => {
 	const _apiKey = 'apikey=d4eecb0c66dedbfae4eab45d312fc1df';
 	const _baseOffset = 0;
 
-	// Добавляем параметры по умолчанию
 	const getAllCharacters = (offset = _baseOffset, limit = 3) => {
 		return request(
 			`${_apiBase}characters?offset=${offset}&limit=${limit}&${_apiKey}`
@@ -18,7 +17,20 @@ const useMarvelService = () => {
 		return request(`${_apiBase}characters/${id}?${_apiKey}`);
 	};
 
-	return { loading, error, clearError, getAllCharacters, getCharacter };
+	const getAllComics = (offset = _baseOffset, limit = 4) => {
+		return request(
+			`${_apiBase}comics?offset=${offset}&limit=${limit}&${_apiKey}`
+		);
+	};
+
+	return {
+		loading,
+		error,
+		clearError,
+		getAllCharacters,
+		getCharacter,
+		getAllComics,
+	};
 };
 
 export default useMarvelService;
