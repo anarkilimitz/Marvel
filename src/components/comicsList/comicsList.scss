@@ -13,8 +13,8 @@
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 225px));
         justify-content: center; // чтобы не растягивать на всю ширину
-        row-gap: 30px;
-        column-gap: 20px;
+        row-gap: 35px;
+        column-gap: 40px;
         list-style: none;
         padding: 0;
     }
