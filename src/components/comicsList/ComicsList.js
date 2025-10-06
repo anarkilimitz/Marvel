@@ -1,5 +1,6 @@
 import './comicsList.scss';
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
 import useMarvelService from '../../services/MarvelService';
@@ -98,16 +99,18 @@ const ComicsList = () => {
 						focusOnItem(i);
 					}}
 				>
-					<img
-						src={item.thumbnail}
-						alt={item.title}
-						className="comics__item-img"
-						style={imgStyle}
-						onError={(e) => {
-							e.target.src = placeholderImage;
-							e.target.style.objectFit = 'unset';
-						}}
-					/>
+					<Link to={`/comics/${item.id}`}>
+						<img
+							src={item.thumbnail}
+							alt={item.title}
+							className="comics__item-img"
+							style={imgStyle}
+							onError={(e) => {
+								e.target.src = placeholderImage;
+								e.target.style.objectFit = 'unset';
+							}}
+						/>
+					</Link>
 					<div className="comics__name">{item.title}</div>
 					<div className="comics__item-price">{item.price}</div>
 				</li>

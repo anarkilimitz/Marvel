@@ -4,6 +4,7 @@ import AppHeader from '../../components/appHeader/AppHeader';
 import MainCharPage from '../pages/MainCharPage';
 import ComicsPage from '../pages/ComicsPage';
 import Page404 from '../pages/404/Page404';
+import SingleComicPage from '../pages/singleComicPage/SingleComicPage';
 
 const App = () => {
 	const [selectedChar, setChar] = useState(null);
@@ -28,6 +29,7 @@ const App = () => {
 							}
 						/>
 						<Route path="/comics" element={<ComicsPage />} />
+						<Route path="/comics/:comicId" element={<SingleComicPage />} />
 						<Route path="*" element={<Page404 />} />
 					</Routes>
 				</main>
