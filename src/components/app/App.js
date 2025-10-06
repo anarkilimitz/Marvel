@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import AppHeader from '../../components/appHeader/AppHeader';
 import MainCharPage from '../pages/MainCharPage';
 import ComicsPage from '../pages/ComicsPage';
+import Page404 from '../pages/404/Page404';
 
 const App = () => {
 	const [selectedChar, setChar] = useState(null);
@@ -27,6 +28,7 @@ const App = () => {
 							}
 						/>
 						<Route path="/comics" element={<ComicsPage />} />
+						<Route path="*" element={<Page404 />} />
 					</Routes>
 				</main>
 			</div>
