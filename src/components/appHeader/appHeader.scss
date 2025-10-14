@@ -5,14 +5,26 @@
         display: flex;
         justify-content: space-between;
     }
+
     &__title {
         font-weight: bold;
         font-size: 28px;
         line-height: 37px;
-        span {
-            color: $main-color;
+
+        a:hover {
+            text-decoration: wavy underline;
+            text-decoration-color: #9F0013;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 7px;
         }
     }
+
+    span {
+        color: $main-color;
+    }
+
+
+
     &__menu {
         ul {
             display: flex;
@@ -20,11 +32,18 @@
             font-weight: bold;
             font-size: 24px;
             line-height: 32px;
+
             li {
                 margin: 0 8px;
+
                 a:hover {
-                    color: $main-color;
+                    color: red;
+                    text-decoration: underline dotted;
+                    text-decoration-color: red;
+                    text-decoration-thickness: 4px;
+                    text-underline-offset: 7px;
                 }
+
             }
         }
     }

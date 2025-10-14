@@ -2,6 +2,7 @@ import './singleComicPage.scss';
 import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
+import AppBanner from '../../appBanner/AppBanner';
 import useMarvelService from '../../../services/MarvelService';
 import ErrorMessage from '../../errorMessage/ErrorMessage';
 import Spinner from '../../spinner/Spinner';
@@ -20,7 +21,7 @@ const SingleComicPage = () => {
 		clearError();
 		getComic(comicId)
 			.then(onComicLoaded)
-			.catch(() => setComic(null)); // Обработка ошибки, если данные не загружаются
+			.catch(() => setComic(null));
 	};
 
 	const onComicLoaded = (response) => {
@@ -57,11 +58,14 @@ const SingleComicPage = () => {
 	const content = !(loading || error || !comic) ? <View comic={comic} /> : null;
 
 	return (
-		<div className="comic__info">
-			{errorMessage}
-			{spinner}
-			{content}
-		</div>
+		<>
+			<AppBanner />
+			<div className="comic__info">
+				{errorMessage}
+				{spinner}
+				{content}
+			</div>
+		</>
 	);
 };
 

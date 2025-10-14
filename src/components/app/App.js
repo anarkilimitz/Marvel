@@ -6,6 +6,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import AppHeader from '../../components/appHeader/AppHeader';
 import Spinner from '../spinner/Spinner';
 
+import CharSearchForm from '../../components/CharSearchForm/CharSearchForm';
+
 const Page404 = lazy(() => import('../pages/404/Page404'));
 const MainCharPage = lazy(() => import('../pages/MainCharPage'));
 const ComicsPage = lazy(() => import('../pages/ComicsPage'));
@@ -24,6 +26,7 @@ const App = () => {
 		<Router>
 			<div className="app">
 				<AppHeader />
+				<CharSearchForm />
 				<main>
 					<Suspense fallback={<Spinner />}>
 						<Routes>
