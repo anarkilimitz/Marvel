@@ -142,7 +142,7 @@ const ComicsList = () => {
 				onClick={() => onRequest(offset, 4)}
 			>
 				<div className="inner">
-					{newItemLoading ? 'Loading...' : 'Load more'}
+					{newItemLoading ? 'Загрузка...' : 'Загрузить ещё'}
 				</div>
 			</button>
 		</div>

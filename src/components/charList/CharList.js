@@ -140,7 +140,7 @@ const CharList = (props) => {
 				onClick={() => onRequest(offset, 3)}
 			>
 				<div className="inner">
-					{newItemLoading ? 'Loading...' : 'Load more'}
+					{newItemLoading ? 'Загрузка...' : 'Загрузить ещё'}
 				</div>
 			</button>
 		</div>

@@ -102,7 +102,7 @@ const RandomChar = () => {
 					<p className="randomchar__descr">{description}</p>
 					<div className="randomchar__btns">
 						<a href={homepage} target="_blank" className="button button__main">
-							<div className="inner">homepage</div>
+							<div className="inner">Персонаж</div>
 						</a>
 						<a href={wiki} target="_blank" className="button button__secondary">
 							<div className="inner">Wiki</div>
@@ -125,7 +125,7 @@ const RandomChar = () => {
 				</p>
 				<p className="randomchar__title">Or choose another one</p>
 				<button onClick={updateChar} className="button button__main">
-					<div className="inner">try it</div>
+					<div className="inner">Другой персонаж</div>
 				</button>
 				<img src={mjolnir} alt="mjolnir" className="randomchar__decoration" />
 			</div>
