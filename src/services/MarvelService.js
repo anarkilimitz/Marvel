@@ -27,6 +27,10 @@ const useMarvelService = () => {
 		return request(`${_apiBase}comics/${id}?${_apiKey}`);
 	};
 
+	const getCharName = (name) => {
+		return request(`${_apiBase}characters?name=${name}&${_apiKey}`);
+	};
+
 	return {
 		loading,
 		error,
@@ -34,7 +38,8 @@ const useMarvelService = () => {
 		getAllCharacters,
 		getCharacter,
 		getAllComics,
-		getComic
+		getComic,
+		getCharName,
 	};
 };
 

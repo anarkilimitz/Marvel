@@ -25,7 +25,9 @@ const SingleComicPage = () => {
 	};
 
 	const onComicLoaded = (response) => {
+		console.log('Полученные данные:', response); 
 		const comicData = response.data.results[0];
+		console.log('Данные комикса:', comicData);
 		if (!comicData) {
 			setComic(null);
 			return;

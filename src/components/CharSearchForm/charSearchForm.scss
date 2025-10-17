@@ -20,8 +20,9 @@
     }
 
     &__btn-wrapper {
+        margin-top: 39px;
         display: grid;
-        align-content: end;
+        align-content: start;
         height: 100%;
     }
 }
