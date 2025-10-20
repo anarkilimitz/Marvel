@@ -1,3 +1,5 @@
+import { Helmet } from 'react-helmet';
+
 import './singleComicPage.scss';
 import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
@@ -25,7 +27,7 @@ const SingleComicPage = () => {
 	};
 
 	const onComicLoaded = (response) => {
-		console.log('Полученные данные:', response); 
+		console.log('Полученные данные:', response);
 		const comicData = response.data.results[0];
 		console.log('Данные комикса:', comicData);
 		if (!comicData) {
@@ -76,6 +78,10 @@ const View = ({ comic }) => {
 
 	return (
 		<div className="single-comic">
+			<Helmet>
+				<meta name="description" content={`${title} comics book`} />
+				<title>{title}</title>
+			</Helmet>
 			{thumbnail ? (
 				<img src={thumbnail} alt={title} className="single-comic__img" />
 			) : (

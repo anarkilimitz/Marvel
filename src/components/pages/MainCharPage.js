@@ -1,3 +1,5 @@
+import { Helmet } from 'react-helmet';
+
 import RandomChar from '../../components/randomChar/RandomChar';
 import CharList from '../../components/charList/CharList';
 import CharInfo from '../../components/charInfo/CharInfo';
@@ -8,6 +10,10 @@ import decoration from '../../resources/img/vision.png';
 const MainCharPage = ({ onCharSelected, selectedChar }) => {
 	return (
 		<>
+			<Helmet>
+				<meta name="description" content="Marvel information portal" />
+				<title>Marvel information portal</title>
+			</Helmet>
 			<ErrorBoundary>
 				<RandomChar />
 			</ErrorBoundary>
