@@ -10,7 +10,7 @@ const ComicsList = () => {
 	const [newItemLoading, setNewItemLoading] = useState(false);
 	const [offset, setOffset] = useState(0);
 	const [comicsEnded, setComicsEnded] = useState(false);
-	const isMountedRef = useRef(false); // ✅ Добавляем флаг монтирования
+	const isMountedRef = useRef(false); // Добавляем флаг монтирования
 	const { loading, error, getAllComics } = useMarvelService();
 
 	useEffect(() => {

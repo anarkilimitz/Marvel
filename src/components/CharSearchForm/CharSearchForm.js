@@ -49,7 +49,21 @@ const CharSearchForm = () => {
 
 	const updateChar = (name) => {
 		clearError();
-		getCharName(name)
+
+		// 2 функции для поиска персов любым спрособом (с заглавной или маленькой или даже без дефиса)
+		const formattedName = name
+			.trim()
+			.toLowerCase()
+			.split(/[\s-]+/)
+			.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+			.join(' ');
+
+		const searchName =
+			name.toLowerCase() === 'spider-man' || name.toLowerCase() === 'spider man'
+				? 'Spider-Man'
+				: formattedName;
+
+		getCharName(searchName)
 			.then(onCharLoaded)
 			.catch(() => {
 				setChar(null);

@@ -1,6 +1,8 @@
 import './singleCharPage.scss';
 import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet';
+
 import AppBanner from '../../appBanner/AppBanner';
 import useMarvelService from '../../../services/MarvelService';
 import ErrorMessage from '../../errorMessage/ErrorMessage';
@@ -70,6 +72,10 @@ const View = ({ char }) => {
 
 	return (
 		<div className="single-char">
+			<Helmet>
+				<meta name="description" content="Page of char" />
+				<title>{name}</title>
+			</Helmet>
 			{thumbnail ? (
 				<img src={thumbnail} alt={name} className="single-char__img" />
 			) : (

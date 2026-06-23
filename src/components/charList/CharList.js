@@ -28,6 +28,7 @@ const CharList = (props) => {
 	};
 
 	const onCharListLoaded = (newCharList) => {
+		console.log('Сырые данные от сервера:', newCharList);
 		const formattedCharList = newCharList.data.results.map((char) => ({
 			id: char.id,
 			name: char.name,
