@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import './randomChar.scss';
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
@@ -7,7 +7,6 @@ import ErrorWindow from '../../resources/img/error-Window.jpg';
 import useMarvelService from '../../services/MarvelService';
 
 const RandomChar = () => {
-	const [id, setId] = useState(null);
 	const [name, setName] = useState(null);
 	const [description, setDescription] = useState(null);
 	const [thumbnail, setThumbnail] = useState(null);
@@ -17,21 +16,9 @@ const RandomChar = () => {
 
 	const { loading, error, getCharacter, clearError } = useMarvelService();
 
-	useEffect(() => {
-		updateChar();
-		// const timerId = setInterval(() => {
-		// 	updateChar();
-		// }, [5000000]);
-
-		// // Функция очистки - выполняется при размонтировании
-		// return () => {
-		// 	clearInterval(timerId);
-		// };
-	}, []); // Пустой массив зависимостей = только при монтировании/размонтировании
-
-	const updateChar = () => {
+	const updateChar = useCallback(() => {
 		clearError(); // очистка ошибки если по ID не оказалось персонажа, но он мог переключиться
-		setImageError((imageError) => false);
+		setImageError(false);
 
 		const id = Math.floor(Math.random() * (20 - 1) + 1); // Случайный ID от 1 до 20
 
@@ -60,13 +47,18 @@ const RandomChar = () => {
 				setImageError((imageError) => false);
 			})
 			.catch(() => {
-				setImageError((imageError) => false);
+				setImageError(false);
 			});
-	};
+	}, [getCharacter, clearError]);
+
+	useEffect(() => {
+		updateChar();
+		// eslint-disable-next-line
+	}, []); // Пустой массив - запуск строго 1 раз при старте
 
 	// Обработчик ошибки загрузки изображения
 	const onImageError = () => {
-		setImageError((imageError) => true);
+		setImageError(true);
 	};
 
 	const errorMessage = error ? <ErrorMessage /> : null;
@@ -101,10 +93,20 @@ const RandomChar = () => {
 					<p className="randomchar__name">{name}</p>
 					<p className="randomchar__descr">{description}</p>
 					<div className="randomchar__btns">
-						<a href={homepage} target="_blank" className="button button__main">
+						<a
+							href={homepage}
+							target="_blank"
+							rel="noreferrer"
+							className="button button__main"
+						>
 							<div className="inner">Персонаж</div>
 						</a>
-						<a href={wiki} target="_blank" className="button button__secondary">
+						<a
+							href={wiki}
+							target="_blank"
+							rel="noreferrer"
+							className="button button__secondary"
+						>
 							<div className="inner">Wiki</div>
 						</a>
 					</div>
